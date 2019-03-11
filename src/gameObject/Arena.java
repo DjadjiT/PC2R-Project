@@ -13,29 +13,42 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 public class Arena extends Application { 
-	protected final int SIZE = 600;
-	private Node gameView;
+	public final static int SIZE = 800;
+	public final int MAX_SCORE = 10;
 	private Vehicule player;
-	private ArrayList<GameObject> objectifs = new ArrayList<>();
-	
+	private GameObject objectif;
+	private Text text ;
 	Pane root;
 	
 	private Pane createPane() {
 		root = new Pane();
 		root.setPrefSize(SIZE,  SIZE);
-		 Polygon polygon = new Polygon();
-	        polygon.getPoints().addAll(new Double[]{
-	            0.0, 0.0,
-	            20.0, 10.0,
-	            10.0, 20.0 });
-		player = new Vehicule(polygon);
+		objectif = new GameObject(new Circle(15,15,15, Color.YELLOW));
+		moveObj(objectif);
+		root.getChildren().add(objectif.getView());
+		Polygon polygon = new Polygon();
+        polygon.getPoints().addAll(new Double[]{
+    		10.0, 20.0
+    		,20.0, 10.0
+    		,0.0, 0.0	            
+             });
+		player = new Vehicule(new Rectangle(40,15, Color.BLUE));
 		player.getView().setTranslateX(400);
 		player.getView().setTranslateY(400);
 		root.getChildren().add(player.getView());
 		
+		//Code d'un Score board qui ne s'affiche pas pour le moment 
+//		text = new Text();
+//		text.setFont(new Font("ARIAL", 30));
+//		text.setStyle("-fx-font-weight: bold;");
+//		text.setFill(Color.WHITE);
+//		text.setText("Score : " +player.getScore());
 		AnimationTimer timer = new AnimationTimer() {
 			
 			@Override
@@ -54,13 +67,13 @@ public class Arena extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		stage.setScene(new Scene(createPane()));
+		stage.setTitle("Game"); 
+				
+		root.getChildren().add(text);
 		
 		stage.getScene().setOnKeyPressed(e -> {
 			if( e.getCode() == KeyCode.UP) {
 				player.thrust();
-			}
-			else if( e.getCode() == KeyCode.DOWN) {
-				player.pull();
 			}
 			
 			else if( e.getCode() == KeyCode.LEFT) {
@@ -76,33 +89,23 @@ public class Arena extends Application {
 	}
 	
 	private void onUpdate() {
-		for(GameObject obj : objectifs) {
-			if(player.collide(obj)) {
-				obj.setVisible(false);
-			}
+		if(player.collide(objectif)){
+			moveObj(objectif);
+			player.setScore(player.getScore()+1);
 		}
 		
-		for(GameObject obj : objectifs) {
-			if(!obj.isVisible) {
-				objectifs.remove(obj);
-				root.getChildren().remove(obj.getView());
-			}
+		if(player.getScore() >= 50) {
+			//implementer Pop up victoire
 		}
-		
-		player.update();		
-		if(Math.random() < 0.015) {
-			addGameObject(new GameObject(new Circle(15,15,15, Color.YELLOW)));
-		}
+		player.update();
 	}
 	
-	private void addGameObject(GameObject obj) {
+	private void moveObj(GameObject obj) {
 		Random r = new Random();
-		objectifs.add(obj);
 		double x = 1 + (600)*r.nextDouble();
 		double y = 1 + (600)*r.nextDouble();
 		obj.getView().setTranslateX(x);
 		obj.getView().setTranslateY(y);
-		root.getChildren().add(obj.getView());
 	}
 	
 	
